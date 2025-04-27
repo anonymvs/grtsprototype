@@ -1,0 +1,30 @@
+# Rust build
+/target
+**/*.rs.bk
+
+# VS Code settings
+.vscode/
+
+# Bevy asset hot-reload artifacts
+assets/_reload_temp/
+
+# Byproducts of running on Windows
+*.exe
+*.pdb
+*.dll
+
+# Byproducts of running on Unix
+*.dylib
+*.so
+
+# Cargo package files
+Cargo.lock
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Backup files
+*~

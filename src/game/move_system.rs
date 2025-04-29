@@ -2,7 +2,10 @@
 use bevy::{color, prelude::*};
 
 use crate::game::types::{CursorPosition, Playable, UnitState};
+use crate::game::unit_type::UnitType;
 use crate::ui::settings::GameSettings;
+
+use super::unit_type::UnitConstants;
 
 // fn vec2_equal_eps(a: Vec2, b: Vec2, epsilon: f32) -> bool {
 //     (a - b).length_squared() < epsilon * epsilon
@@ -21,24 +24,42 @@ fn move_toward_direction(position: Vec2, direction: Vec2, speed: f32) -> Vec2 {
 //     return move_toward_direction(position, dir, speed);
 // }
 
-pub fn move_rect_system(
-    mut query: Query<(&UnitState, &mut Transform), With<Playable>>,
-    settings: Res<GameSettings>,
+// pub fn input_handling(keys: Res<ButtonInput<KeyCode>>, settings: Res<GameSettings>) {
+
+// }
+
+pub fn move_unit_system(
+    mut query: Query<(&UnitState, &UnitConstants, &mut Transform), With<Playable>>,
     mut gizmos: Gizmos,
+    settings: Res<GameSettings>,
+    keys: Res<ButtonInput<KeyCode>>,
 ) {
-    for (unit_state, mut transform) in &mut query {
-        transform.translation = move_toward_direction(
-            transform.translation.truncate(),
-            unit_state.direction,
-            unit_state.velocity,
-        )
-        .extend(0.0);
+    for (unit_state, constants, mut transform) in &mut query {
+        let mut should_move = false;
+
+        if keys.pressed(settings.rect_selector) && constants.unit_type == UnitType::Rect {
+            should_move = true;
+        } else if keys.pressed(settings.circ_selector) && constants.unit_type == UnitType::Circle {
+            should_move = true;
+        } else if keys.pressed(settings.tria_selector) && constants.unit_type == UnitType::Triangle
+        {
+            should_move = true;
+        }
+
+        if should_move {
+            transform.translation = move_toward_direction(
+                transform.translation.truncate(),
+                unit_state.direction,
+                unit_state.velocity,
+            )
+            .extend(0.0);
+        }
 
         if settings.is_gizmo_enabled {
             gizmos.line_2d(
                 transform.translation.truncate(),
                 transform.translation.truncate()
-                    + (unit_state.direction * unit_state.velocity * 100.0),
+                    + (unit_state.direction * unit_state.velocity * 10.0),
                 color::palettes::basic::BLUE,
             );
         }
@@ -74,8 +95,10 @@ pub fn update_cursor(
     cursor_position.set(point);
 }
 
-pub fn rect_selector_pressed(keys: Res<ButtonInput<KeyCode>>, settings: Res<GameSettings>) -> bool {
-    return keys.pressed(settings.rect_selector);
+pub fn unit_selector_pressed(keys: Res<ButtonInput<KeyCode>>, settings: Res<GameSettings>) -> bool {
+    return keys.pressed(settings.rect_selector)
+        || keys.pressed(settings.circ_selector)
+        || keys.pressed(settings.tria_selector);
 }
 
 pub fn is_in_range(pos: Vec2, target: Vec2, range: f32) -> bool {
@@ -104,24 +127,24 @@ fn is_intersecting(a: Vec2, radius_a: f32, b: Vec2, radius_b: f32) -> bool {
 pub fn intersect_system(
     //mut gizmos: Gizmos,
     //time: Res<Time>,
-    mut query: Query<(Entity, &mut UnitState, &Transform), With<Playable>>,
+    mut query: Query<(Entity, &mut UnitState, &UnitConstants, &Transform), With<Playable>>,
     //ettings: Res<GameSettings>,
 ) {
     //const MAX_DIAMETER_SQUARED: f32 = 200.0;
 
     let mut unit_states_to_change: Vec<(Entity, Vec2)> = Vec::new();
 
-    for (entity_curr, state_curr, transform_curr) in &query {
-        for (entity_target, state_target, transform_target) in &query {
+    for (entity_curr, state_curr, constants_curr, transform_curr) in &query {
+        for (entity_target, state_target, constants_target, transform_target) in &query {
             if entity_curr == entity_target {
                 continue;
             }
 
             if is_intersecting(
                 transform_curr.translation.truncate(),
-                state_curr.bounding_circle_radius,
+                constants_curr.bounding_circle_radius,
                 transform_target.translation.truncate(),
-                state_target.bounding_circle_radius,
+                constants_target.bounding_circle_radius,
             ) {
                 let dir_to_target = (transform_target.translation - transform_curr.translation)
                     .truncate()
@@ -132,7 +155,7 @@ pub fn intersect_system(
     }
 
     for (entity, dir_to_target) in unit_states_to_change {
-        if let Ok((_, mut state, _)) = query.get_mut(entity) {
+        if let Ok((_, mut state, _, _)) = query.get_mut(entity) {
             state.direction = (state.direction + ((-dir_to_target) * 1.5)).normalize();
             state.velocity = state.velocity;
         }

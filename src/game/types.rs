@@ -1,5 +1,5 @@
-use crate::game::unit_type::UnitType;
-use bevy::{math::bounding::Aabb2d, prelude::*};
+use crate::game::unit_type::UnitConstants;
+use bevy::prelude::*;
 use bitflags::bitflags;
 
 // #[derive(Component)]
@@ -54,7 +54,7 @@ pub struct UnitState {
     // pub xp: f32,
     pub velocity: f32,
     pub direction: Vec2,
-    pub bounding_circle_radius: f32,
+    pub easing_vector: Vec2,
 }
 
 #[derive(Bundle)]
@@ -64,7 +64,7 @@ pub struct PlayerUnitBundle {
     pub transform: Transform,
     pub state: UnitState,
     pub playable: Playable,
-    pub unit_type: UnitType,
+    pub contants: UnitConstants,
 }
 
 // #[derive(Component)]

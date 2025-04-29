@@ -8,6 +8,13 @@ pub enum UnitType {
     Circle,
 }
 
+#[derive(Component)]
+pub struct UnitConstants {
+    pub unit_type: UnitType,
+    pub bounding_circle_radius: f32,
+    pub easing_distance: f32,
+}
+
 // impl Debug for UnitType {
 //     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 //         match self {

@@ -3,7 +3,7 @@ use bevy::prelude::*;
 pub struct UnitPlugin;
 
 use crate::game::move_system::{
-    intersect_system, move_rect_system, rect_selector_pressed, unit_state_update_system,
+    intersect_system, move_unit_system, unit_selector_pressed, unit_state_update_system,
     update_cursor,
 };
 use crate::game::types::{CursorPosition, UnitFlags};
@@ -18,7 +18,7 @@ impl Plugin for UnitPlugin {
                 update_cursor,
                 unit_state_update_system,
                 intersect_system,
-                move_rect_system.run_if(rect_selector_pressed),
+                move_unit_system.run_if(unit_selector_pressed),
             )
                 .chain(),
         );

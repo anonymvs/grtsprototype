@@ -1,7 +1,7 @@
 use bevy::{color, prelude::*};
 
 use crate::game::types::{Playable, PlayerUnitBundle, UnitState};
-use crate::game::unit_type::UnitType;
+use crate::game::unit_type::{UnitConstants, UnitType};
 
 fn rectangle() -> Rectangle {
     return Rectangle::new(10.0, 10.0);
@@ -25,6 +25,12 @@ pub fn spawn_unit(
     unit_type: UnitType,
     position: Vec2,
 ) -> PlayerUnitBundle {
+    let unit_constants = UnitConstants {
+        unit_type,
+        bounding_circle_radius: 5.0,
+        easing_distance: 10.0,
+    };
+
     let shape = match unit_type {
         UnitType::Rect => meshes.add(rectangle()),
         UnitType::Triangle => meshes.add(triangle()),
@@ -45,8 +51,8 @@ pub fn spawn_unit(
         state: UnitState {
             velocity: 0.0,
             direction: Vec2::new(0.0, 0.0),
-            bounding_circle_radius: 5.0,
+            easing_vector: Vec2::new(0.0, 0.0),
         },
-        unit_type,
+        contants: unit_constants,
     };
 }

@@ -11,6 +11,14 @@ use super::unit_type::UnitConstants;
 //     (a - b).length_squared() < epsilon * epsilon
 // }
 
+fn is_equel_eps(a: f32, b: f32, epsilon: f32) -> bool {
+    return (a - b).abs() < epsilon;
+}
+
+fn is_zero_eps(a: f32, epsilon: f32) -> bool {
+    return a.abs() < epsilon;
+}
+
 fn move_toward_direction(position: Vec2, direction: Vec2, speed: f32) -> Vec2 {
     return position + (direction.normalize() * speed);
 }
@@ -22,10 +30,6 @@ fn move_toward_direction(position: Vec2, direction: Vec2, speed: f32) -> Vec2 {
 
 //     let dir = position - target;
 //     return move_toward_direction(position, dir, speed);
-// }
-
-// pub fn input_handling(keys: Res<ButtonInput<KeyCode>>, settings: Res<GameSettings>) {
-
 // }
 
 pub fn move_unit_system(
@@ -115,6 +119,42 @@ pub fn unit_state_update_system(
         let position = transform.translation.truncate();
         state.velocity = settings.speed * time.delta().as_secs_f32();
         state.direction = (cursor_position.0 - position).normalize_or_zero();
+    }
+}
+
+pub fn calc_easing_vecotr_system(
+    mut query: Query<(Entity, &mut UnitState, &UnitType, &Transform), With<Playable>>,
+    time: Res<Time>,
+    settings: Res<GameSettings>,
+    cursor_position: Res<CursorPosition>,
+) {
+    // todo use: https://docs.rs/force_graph/latest/force_graph/
+
+    for (entity, mut state, unit_type, transform) in query.iter_mut() {
+        // for current unit
+
+        let mut easing_components: Vec<Vec2> = Vec::new();
+        for (entity_target, state_target, unit_type_target, transform_target) in &query {
+            if entity == entity_target {
+                continue;
+            }
+
+            if unit_type == unit_type_target {
+                let mut dir_target =
+                    transform_target.translation.truncate() - transform.translation.truncate();
+                let dist = dir_target.length() - settings.easing_distance;
+                if dist < 0.0 {
+                    dir_target = -dir_target;
+                }
+
+                if is_zero_eps(dist, settings.eps) {
+                    continue;
+                } else {
+                    // 0.5 because the target moves the same amount to the other direction
+                    easing_components.push(dir_target.normalize_or_zero() * dist.abs() * 0.5);
+                }
+            }
+        }
     }
 }
 

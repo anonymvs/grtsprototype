@@ -6,6 +6,7 @@ use crate::game::unit_type::UnitType;
 pub struct GameSettings {
     pub eps: f32,
     pub speed: f32,
+    pub easing_distance: f32,
     pub rect_selector: KeyCode,
     pub circ_selector: KeyCode,
     pub tria_selector: KeyCode,
@@ -18,6 +19,7 @@ impl Default for GameSettings {
         GameSettings {
             eps: 0.5,
             speed: 100.0,
+            easing_distance: 20.0,
             rect_selector: KeyCode::KeyF,
             circ_selector: KeyCode::KeyD,
             tria_selector: KeyCode::KeyS,
